@@ -32,7 +32,7 @@ def api_post(json_payload):
 @app.route('/')
 def index():
     """Nothing to see here."""
-    return abort(403)
+    return 'Hi.', 200
 
 
 @app.route('/new', methods=['POST'])
