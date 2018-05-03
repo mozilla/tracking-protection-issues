@@ -39,14 +39,14 @@ def index():
 def new_issue():
     """Create a new issue.
 
-    We don't do any kind of meaningful validation here. Garbage in, garbage in.
+    There is no meaningful validation here. Garbage in, garbage in.
+    We expect the following sent to us as application/json:
 
-    We expect the following sent to us as application/json, however:
+        {"title": "string", "body": "string"}
 
-    {"title": "string", "body": "string"}
-    If we don't get that, we return 400
+    However, if we don't get that, we return 400
     """
     if request.json:
         rv = api_post(request.json)
-        return (rv.text, rv.status_code)
+        return (rv.content, rv.status_code)
     return abort(400)
