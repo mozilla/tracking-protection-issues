@@ -10,6 +10,9 @@ flask = "*"
 requests = "*"
 gunicorn = "*"
 python-dotenv = "*"
+"nose2" = "*"
+pycodestyle = "*"
+mock = "*"
 
 [requires]
 python_version = "2.7"

@@ -1,0 +1,41 @@
+# Python CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-python/ for more details
+#
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/python:2.7.14-stretch
+
+    working_directory: ~/repo
+
+    steps:
+      - checkout
+
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+            - cache-{{ checksum "Pipfile.lock" }}
+            - cache-
+
+      - run:
+          name: Install dependencies
+          command: pipenv sync --dev
+
+      - save_cache:
+          key: cache-{{ checksum "Pipfile.lock" }}
+          paths:
+            - ~/.local
+            - ~/.cache
+
+      # run tests!
+      - run:
+          name: run tests
+          command: |
+            pipenv run pycodestyle --show-source --show-pep8 .
+            pipenv run nose2
+
+      - store_artifacts:
+          path: test-reports
+          destination: test-reports
