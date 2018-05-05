@@ -1,5 +1,7 @@
 # webcompat-blipz-experiment-issues
 
+[![CircleCI](https://circleci.com/gh/mozilla/webcompat-blipz-experiment-issues.svg?style=svg&circle-token=85b98f657531c7f90e84082cd9220d1babf27fd6)](https://circleci.com/gh/mozilla/webcompat-blipz-experiment-issues)
+
 Private repo used to host the code for filing issues from the webcompat-blipz-experiement web extension, *and* as a place to collect those private issues.
 
 ## Local installation
