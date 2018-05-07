@@ -5,37 +5,28 @@
 
 import json
 import os
-
 import requests
 
+from app.flaskapp import app
+from app.helpers import api_post
+from app.helpers import is_jpeg
+from app.helpers import upload_file
 from flask import abort
+from flask import Blueprint
 from flask import Flask
 from flask import request
 
-app = Flask(__name__)
+
+issues = Blueprint('issues', __name__)
 
 
-def api_post(json_payload):
-    """Helper method to post junk to GitHub.
-
-
-    Assumes an OAUTH_TOKEN environment variable exists."""
-    repo = 'mozilla/webcompat-blipz-experiment-issues'
-    headers = {
-        'Authorization': 'token {0}'.format(os.environ['OAUTH_TOKEN']),
-        'User-Agent': 'mozilla/webcompat-blipz-experiment-issues'
-    }
-    uri = 'https://api.github.com/repos/{0}/issues'.format(repo)
-    return requests.post(uri, data=json.dumps(json_payload), headers=headers)
-
-
-@app.route('/')
+@issues.route('/')
 def index():
     """Nothing to see here."""
     return 'Hi.', 200
 
 
-@app.route('/new', methods=['POST'])
+@issues.route('/new', methods=['POST'])
 def new_issue():
     """Create a new issue.
 

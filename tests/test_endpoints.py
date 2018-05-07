@@ -13,7 +13,7 @@ import unittest
 
 # Add issue module to import path
 sys.path.append(os.path.realpath(os.pardir))
-import issue  # nopep8
+from app import app  # nopep8
 
 
 class TestEndpoints(unittest.TestCase):
@@ -21,9 +21,8 @@ class TestEndpoints(unittest.TestCase):
 
     def setUp(self):
         """Set up."""
-        issue.app.config['TESTING'] = True
-        os.environ['OAUTH_TOKEN'] = 'wowowoowowoww'
-        self.app = issue.app.test_client()
+        app.config['TESTING'] = True
+        self.app = app.test_client()
 
     def tearDown(self):
         """Tear down."""
@@ -51,7 +50,7 @@ class TestEndpoints(unittest.TestCase):
         )
         self.assertEqual(rv.status_code, 400)
 
-    @patch('issue.api_post')
+    @patch('app.endpoints.issues.api_post')
     def test_mock_api_post(self, mock_post):
         """Test that the new issue route accepts a POST with expected data."""
         mock_post.return_value = MagicMock(
