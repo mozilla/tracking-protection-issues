@@ -4,12 +4,11 @@
 """Tests for our basic app endpoints."""
 
 import json
-from mock import MagicMock
-from mock import patch
 import os
-from requests import Response
 import sys
 import unittest
+
+import responses
 
 # Add issue module to import path
 sys.path.append(os.path.realpath(os.pardir))
@@ -44,24 +43,72 @@ class TestEndpoints(unittest.TestCase):
         self.assertEqual(rv.status_code, 400)
         rv = self.app.post('/new', data=json.dumps(dict(hi='dude')))
         self.assertEqual(rv.status_code, 400)
-        rv = self.app.post(
-            '/new', data=json.dumps(dict(hi='dude')),
-            content_type='turkey/sandwiches'
-        )
+        rv = self.app.post('/new', data=json.dumps(dict(hi='dude')))
         self.assertEqual(rv.status_code, 400)
 
-    @patch('app.endpoints.issues.api_post')
-    def test_mock_api_post(self, mock_post):
-        """Test that the new issue route accepts a POST with expected data."""
-        mock_post.return_value = MagicMock(
-            content=json.dumps(dict(great='success')),
-            status_code=201,
-            spec=Response
-        )
+    @responses.activate
+    def test_create_issue(self):
+        """Test new issue endpoint without screenshot."""
+        responses.add(responses.POST,
+                      'https://api.github.com/repos/test/test/issues',
+                      json='{"number": "1"}',
+                      status=201,
+                      content_type='application/json')
 
         rv = self.app.post(
-            '/new', data=json.dumps(dict(hi='dude')),
-            content_type='application/json'
+            '/new', data=dict(title='hi', body='dude')
         )
         self.assertEqual(rv.status_code, 201)
-        self.assertEqual(rv.get_json(force=True).get('great'), 'success')
+
+    @responses.activate
+    def test_create_issue_good_screenshot(self):
+        """Test new issue endpoint with a good screenshot."""
+        responses.add(responses.POST,
+                      'https://api.github.com/repos/test/test/issues',
+                      body='{"number": "1"}',
+                      status=201,
+                      content_type='application/json')
+        responses.add(responses.PUT,
+                      'https://s3.test.amazonaws.com/test',
+                      json='{}',
+                      status=200)
+        responses.add(responses.POST,
+                      'https://api.github.com/repos/test/test/issues/1/comments',  # nopep8
+                      json='{}',
+                      status=201)
+
+        fake_jpg = 'sup'
+        # add padding to avoid TypeError: Incorrect padding
+        fake_jpg += "=" * ((4 - len(fake_jpg) % 4) % 4)
+        rv = self.app.post(
+            '/new',
+            data=dict(title='hi',
+                      body='dude',
+                      screenshot='data:image/jpeg;base64,{}'.format(fake_jpg))
+        )
+        self.assertEqual(rv.status_code, 201)
+        self.assertIn('screenshot uploaded', rv.data)
+
+    @responses.activate
+    def test_create_issue_bad_screenshot(self):
+        """Test new issue endpoint with a bad screenshot."""
+        responses.add(responses.POST,
+                      'https://api.github.com/repos/test/test/issues',
+                      body='{"number": "1"}',
+                      status=201,
+                      content_type='application/json')
+        responses.add(responses.PUT,
+                      'https://s3.test.amazonaws.com/test',
+                      json='{}',
+                      status=200)
+        responses.add(responses.POST,
+                      'https://api.github.com/repos/test/test/issues/1/comments',  # nopep8
+                      json='{}',
+                      status=201)
+
+        rv = self.app.post(
+            '/new', data=dict(title='hi', body='dude',
+                              screenshot='data:image/png;base64,sup')
+        )
+        self.assertEqual(rv.status_code, 201)
+        self.assertIn('without screenshot', rv.data)
