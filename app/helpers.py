@@ -3,10 +3,25 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from base64 import b64decode
+from io import BytesIO
+import json
+
 import boto3
-import botocore
-from config import REGION, S3_KEY, S3_SECRET, S3_BUCKET
+import requests
+
+from config import REGION
+from config import REPO
+from config import S3_BUCKET
+from config import S3_KEY
+from config import S3_LOCATION
+from config import S3_SECRET
 from flaskapp import app
+
+HEADERS = {
+    'Authorization': 'token {0}'.format(app.config['OAUTH_TOKEN']),
+    'User-Agent': 'mozilla/webcompat-blipz-experiment-issues'
+}
 
 s3 = boto3.client(
     "s3",
@@ -16,42 +31,34 @@ s3 = boto3.client(
 )
 
 
-def api_post(json_payload):
-    """Helper method to post junk to GitHub.
+def create_issue(body, title):
+    """Helper method to create a new issue on GitHub."""
+    uri = 'https://api.github.com/repos/{0}/issues'.format(REPO)
+    payload = {"body": body, "title": title}
+    return requests.post(uri, data=json.dumps(payload), headers=HEADERS)
 
 
-    Assumes an OAUTH_TOKEN environment variable exists."""
-    repo = 'mozilla/webcompat-blipz-experiment-issues'
-    headers = {
-        'Authorization': 'token {0}'.format(app.config['OAUTH_TOKEN']),
-        'User-Agent': 'mozilla/webcompat-blipz-experiment-issues'
-    }
-    uri = 'https://api.github.com/repos/{0}/issues'.format(repo)
-    return requests.post(uri, data=json.dumps(json_payload), headers=headers)
+def add_comment(screenshot_uri, issue_number):
+    """Helper method to add a comment to an existing issue."""
+
+    uri = 'https://api.github.com/repos/{repo}/issues/{number}/comments'.format(  # nopep8
+        repo=REPO, number=issue_number
+    )
+    body = {"body": "Associated screenshot: {}".format(screenshot_uri)}
+    return requests.post(uri, data=json.dumps(body), headers=HEADERS)
 
 
-def is_jpeg(filename):
-    """Helper to determine if the uploaded file is a JPEG."""
-    return '.' in filename and \
-        filename.rsplit('.', 1)[1].lower() in set(['jpg', 'jpeg'])
-
-
-def upload_file(file, bucket_name, acl='private'):
+def upload_filedata(base64_image, issue_number):
+    filename = "issue-{}-screenshot.jpg".format(issue_number)
+    imagedata = BytesIO(b64decode(base64_image))
     try:
         s3.upload_fileobj(
-            file,
-            bucket_name,
-            file.filename,
-            ExtraArgs={
-                "ACL": acl,
-                "ContentType": file.content_type
-            }
+            imagedata, S3_BUCKET, filename,
+            ExtraArgs={'ACL': 'private', 'ContentType': 'image/jpeg'}
         )
-
     except Exception as e:
-        print('WTF: ', e)
+        print('Error uploading image to s3: ', e)
         return e
 
-    filename = "{bucket}{file}".format(
-        bucket=app.config["S3_LOCATION"], file=file.filename)
-    return filename
+    fileuri = "{bucket}{file}".format(bucket=S3_LOCATION, file=filename)
+    return fileuri
