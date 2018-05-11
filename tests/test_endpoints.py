@@ -13,7 +13,7 @@ import unittest
 
 # Add issue module to import path
 sys.path.append(os.path.realpath(os.pardir))
-from app import app  # nopep8
+from app import app  # noqa
 
 
 class TestEndpoints(unittest.TestCase):
