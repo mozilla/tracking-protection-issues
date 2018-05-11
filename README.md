@@ -12,6 +12,18 @@ We're using [pipenv](https://docs.pipenv.org/) for this project. Be sure to [ins
 1. `pipenv sync --dev`
 2. `pipenv run flask run`
 
-Note: If you're trying to use this in production, it will expect a `OAUTH_TOKEN` environment variable, which contains a valid GitHub Oauth personal token.
+Note: If you're trying to use this in production, it will expect a lot of environment variables. Check out config.py.
 
-🚨 Please don't ever add it to the `.env` file and check it in. 🚨
+🚨 Please don't ever add any to the `.env` file and check it in. 🚨
+
+## How it works
+
+This server exposes a `/new` endpoint that expects the following `multipart/form-data` payload via `POST`, represented here in some kind of pseudo-schema:
+
+{
+  "body": the issue body (required)
+  "title": the issue title (required),
+  "screenshot": base64 encoded jpeg (optional)
+}
+
+A GitHub issue will be created, assuming all the credentials are correct, and if there's a screenshot in the payload, it will be uploaded to a private s3 bucket. Once that is done, a link to the uploaded image will be posted as a comment in the newly created issue. For privacy and security reasons, the GitHub repo is private and locked down to a small team of Mozilla employees within the @mozilla GitHub org. If you think you need access, ping miket@mozilla.com. The s3 bucket is restricted to people with IAM access, and the images are not accessible from GitHub issues.
