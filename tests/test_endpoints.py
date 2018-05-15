@@ -18,6 +18,8 @@ ISSUE_ENDPOINT = 'https://api.github.com/repos/test/test-repo/issues'
 COMMENT_ENDPOINT = 'https://api.github.com/repos/test/test-repo/issues/1/comments'  # noqa
 S3_ENDPOINT = 'https://test-bucket.s3.test-region.amazonaws.com'
 
+JPEG = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAIBAQIBAQICAgICAgICAwUDAwMDAwYEBAMFBwYHBwcGBwcICQsJCAgKCAcHCg0KCgsMDAwMBwkODw0MDgsMDAz/2wBDAQICAgMDAwYDAwYMCAcIDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAz/wAARCAABAAEDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD9/KKKKAP/2Q=='  # noqa
+
 
 class TestEndpoints(unittest.TestCase):
     """Module for testing the form."""
@@ -81,14 +83,11 @@ class TestEndpoints(unittest.TestCase):
                       json='{}',
                       status=201)
 
-        fake_jpg = 'sup'
-        # add padding to avoid TypeError: Incorrect padding
-        fake_jpg += "=" * ((4 - len(fake_jpg) % 4) % 4)
         rv = self.app.post(
             '/new',
             data=dict(title='hi',
                       body='dude',
-                      screenshot='data:image/jpeg;base64,{}'.format(fake_jpg))
+                      screenshot='data:image/jpeg;base64,{}'.format(JPEG))
         )
         self.assertEqual(rv.status_code, 201)
         self.assertIn('screenshot uploaded', rv.data)
