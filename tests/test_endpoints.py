@@ -4,16 +4,21 @@
 """Tests for our basic app endpoints."""
 
 import json
-from mock import MagicMock
-from mock import patch
 import os
-from requests import Response
 import sys
 import unittest
 
+import responses
+
 # Add issue module to import path
 sys.path.append(os.path.realpath(os.pardir))
-import issue  # nopep8
+from app import app  # noqa
+
+ISSUE_ENDPOINT = 'https://api.github.com/repos/test/test-repo/issues'
+COMMENT_ENDPOINT = 'https://api.github.com/repos/test/test-repo/issues/1/comments'  # noqa
+S3_ENDPOINT = 'https://test-bucket.s3.test-region.amazonaws.com'
+
+JPEG = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAIBAQIBAQICAgICAgICAwUDAwMDAwYEBAMFBwYHBwcGBwcICQsJCAgKCAcHCg0KCgsMDAwMBwkODw0MDgsMDAz/2wBDAQICAgMDAwYDAwYMCAcIDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAz/wAARCAABAAEDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD9/KKKKAP/2Q=='  # noqa
 
 
 class TestEndpoints(unittest.TestCase):
@@ -21,9 +26,8 @@ class TestEndpoints(unittest.TestCase):
 
     def setUp(self):
         """Set up."""
-        issue.app.config['TESTING'] = True
-        os.environ['OAUTH_TOKEN'] = 'wowowoowowoww'
-        self.app = issue.app.test_client()
+        app.config['TESTING'] = True
+        self.app = app.test_client()
 
     def tearDown(self):
         """Tear down."""
@@ -45,24 +49,69 @@ class TestEndpoints(unittest.TestCase):
         self.assertEqual(rv.status_code, 400)
         rv = self.app.post('/new', data=json.dumps(dict(hi='dude')))
         self.assertEqual(rv.status_code, 400)
-        rv = self.app.post(
-            '/new', data=json.dumps(dict(hi='dude')),
-            content_type='turkey/sandwiches'
-        )
+        rv = self.app.post('/new', data=json.dumps(dict(hi='dude')))
         self.assertEqual(rv.status_code, 400)
 
-    @patch('issue.api_post')
-    def test_mock_api_post(self, mock_post):
-        """Test that the new issue route accepts a POST with expected data."""
-        mock_post.return_value = MagicMock(
-            content=json.dumps(dict(great='success')),
-            status_code=201,
-            spec=Response
-        )
+    @responses.activate
+    def test_create_issue(self):
+        """Test new issue endpoint without screenshot."""
+        responses.add(responses.POST,
+                      ISSUE_ENDPOINT,
+                      json='{"number": "1"}',
+                      status=201,
+                      content_type='application/json')
 
         rv = self.app.post(
-            '/new', data=json.dumps(dict(hi='dude')),
-            content_type='application/json'
+            '/new', data=dict(title='hi', body='dude')
         )
         self.assertEqual(rv.status_code, 201)
-        self.assertEqual(rv.get_json(force=True).get('great'), 'success')
+
+    @responses.activate
+    def test_create_issue_good_screenshot(self):
+        """Test new issue endpoint with a good screenshot."""
+        responses.add(responses.POST,
+                      ISSUE_ENDPOINT,
+                      body='{"number": "1"}',
+                      status=201,
+                      content_type='application/json')
+        responses.add(responses.PUT,
+                      S3_ENDPOINT,
+                      json='{}',
+                      status=200)
+        responses.add(responses.POST,
+                      COMMENT_ENDPOINT,  # nopep8
+                      json='{}',
+                      status=201)
+
+        rv = self.app.post(
+            '/new',
+            data=dict(title='hi',
+                      body='dude',
+                      screenshot='data:image/jpeg;base64,{}'.format(JPEG))
+        )
+        self.assertEqual(rv.status_code, 201)
+        self.assertIn('screenshot uploaded', rv.data)
+
+    @responses.activate
+    def test_create_issue_bad_screenshot(self):
+        """Test new issue endpoint with a bad screenshot."""
+        responses.add(responses.POST,
+                      ISSUE_ENDPOINT,
+                      body='{"number": "1"}',
+                      status=201,
+                      content_type='application/json')
+        responses.add(responses.PUT,
+                      S3_ENDPOINT,
+                      json='{}',
+                      status=200)
+        responses.add(responses.POST,
+                      COMMENT_ENDPOINT,  # nopep8
+                      json='{}',
+                      status=201)
+
+        rv = self.app.post(
+            '/new', data=dict(title='hi', body='dude',
+                              screenshot='data:image/png;base64,sup')
+        )
+        self.assertEqual(rv.status_code, 201)
+        self.assertIn('without screenshot', rv.data)
