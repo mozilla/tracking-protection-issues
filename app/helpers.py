@@ -23,7 +23,7 @@ DATA_URI_PREFIX = 'data:image/jpeg;base64,'
 
 HEADERS = {
     'Authorization': 'token {0}'.format(app.config['OAUTH_TOKEN']),
-    'User-Agent': 'mozilla/webcompat-blipz-experiment-issues'
+    'User-Agent': 'mozilla/webcompat-blipz-experiment-server'
 }
 
 s3 = boto3.client(
