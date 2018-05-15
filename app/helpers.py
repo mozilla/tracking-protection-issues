@@ -34,10 +34,12 @@ s3 = boto3.client(
 )
 
 
-def create_issue(body, title):
+def create_issue(body, title, labels):
     """Helper method to create a new issue on GitHub."""
     uri = 'https://api.github.com/repos/{0}/issues'.format(REPO)
     payload = {"body": body, "title": title}
+    if labels and isinstance(labels, list):
+        payload['labels'] = labels
     return requests.post(uri, data=json.dumps(payload), headers=HEADERS)
 
 

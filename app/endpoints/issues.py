@@ -38,11 +38,12 @@ def new_issue():
     """
 
     body = request.form.get('body')
-    title = request.form.get('title')
+    labels = request.form.get('labels')
     screenshot = request.form.get('screenshot')
+    title = request.form.get('title')
 
     if valid_issue_request(body, title):
-        rv = create_issue(body, title)
+        rv = create_issue(body, title, labels)
         if rv.status_code == 201:
             if has_valid_screenshot(screenshot):
                 issue_number = rv.json().get('number')

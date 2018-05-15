@@ -65,6 +65,10 @@ class TestEndpoints(unittest.TestCase):
             '/new', data=dict(title='hi', body='dude')
         )
         self.assertEqual(rv.status_code, 201)
+        rv = self.app.post(
+            '/new', data=dict(title='hi', body='dude', labels=['wow'])
+        )
+        self.assertEqual(rv.status_code, 201)
 
     @responses.activate
     def test_create_issue_good_screenshot(self):
