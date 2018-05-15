@@ -6,13 +6,13 @@
 import os
 
 # The following environment variables are assumed to exist:
-OAUTH_TOKEN = os.environ.get('OAUTH_TOKEN', 'test')
+OAUTH_TOKEN = os.environ.get('OAUTH_TOKEN', 'test-token')
 PRODUCTION = os.environ.get('PRODUCTION', 0)
-REGION = os.environ.get('REGION', 'test')
-REPO = os.environ.get('REPO', 'test/test')
-S3_BUCKET = os.environ.get("S3_BUCKET_NAME", 'test')
-S3_KEY = os.environ.get("S3_ACCESS_KEY", 'test')
-S3_SECRET = os.environ.get("S3_SECRET_ACCESS_KEY", 'test')
+REGION = os.environ.get('REGION', 'test-region')
+REPO = os.environ.get('REPO', 'test/test-repo')
+S3_BUCKET = os.environ.get("S3_BUCKET_NAME", 'test-bucket')
+S3_KEY = os.environ.get("S3_ACCESS_KEY", 'test-key')
+S3_SECRET = os.environ.get("S3_SECRET_ACCESS_KEY", 'test-secret')
 
 S3_LOCATION = 'http://{}.s3.amazonaws.com/'.format(S3_BUCKET)
 SECRET_KEY = os.urandom(32)

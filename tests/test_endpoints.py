@@ -14,6 +14,10 @@ import responses
 sys.path.append(os.path.realpath(os.pardir))
 from app import app  # noqa
 
+ISSUE_ENDPOINT = 'https://api.github.com/repos/test/test-repo/issues'
+COMMENT_ENDPOINT = 'https://api.github.com/repos/test/test-repo/issues/1/comments'  # noqa
+S3_ENDPOINT = 'https://test-bucket.s3.test-region.amazonaws.com'
+
 
 class TestEndpoints(unittest.TestCase):
     """Module for testing the form."""
@@ -50,7 +54,7 @@ class TestEndpoints(unittest.TestCase):
     def test_create_issue(self):
         """Test new issue endpoint without screenshot."""
         responses.add(responses.POST,
-                      'https://api.github.com/repos/test/test/issues',
+                      ISSUE_ENDPOINT,
                       json='{"number": "1"}',
                       status=201,
                       content_type='application/json')
@@ -64,16 +68,16 @@ class TestEndpoints(unittest.TestCase):
     def test_create_issue_good_screenshot(self):
         """Test new issue endpoint with a good screenshot."""
         responses.add(responses.POST,
-                      'https://api.github.com/repos/test/test/issues',
+                      ISSUE_ENDPOINT,
                       body='{"number": "1"}',
                       status=201,
                       content_type='application/json')
         responses.add(responses.PUT,
-                      'https://s3.test.amazonaws.com/test',
+                      S3_ENDPOINT,
                       json='{}',
                       status=200)
         responses.add(responses.POST,
-                      'https://api.github.com/repos/test/test/issues/1/comments',  # nopep8
+                      COMMENT_ENDPOINT,  # nopep8
                       json='{}',
                       status=201)
 
@@ -93,16 +97,16 @@ class TestEndpoints(unittest.TestCase):
     def test_create_issue_bad_screenshot(self):
         """Test new issue endpoint with a bad screenshot."""
         responses.add(responses.POST,
-                      'https://api.github.com/repos/test/test/issues',
+                      ISSUE_ENDPOINT,
                       body='{"number": "1"}',
                       status=201,
                       content_type='application/json')
         responses.add(responses.PUT,
-                      'https://s3.test.amazonaws.com/test',
+                      S3_ENDPOINT,
                       json='{}',
                       status=200)
         responses.add(responses.POST,
-                      'https://api.github.com/repos/test/test/issues/1/comments',  # nopep8
+                      COMMENT_ENDPOINT,  # nopep8
                       json='{}',
                       status=201)
 
