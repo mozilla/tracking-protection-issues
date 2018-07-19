@@ -19,12 +19,12 @@ HEADERS = {
 }
 
 
-def create_issue(body, title, labels):
+def create_issue(body, title, labels=None):
     """Helper method to create a new issue on GitHub."""
     uri = 'https://api.github.com/repos/{0}/issues'.format(REPO)
     payload = {"body": body, "title": title}
-    if labels and isinstance(labels, list):
-        payload['labels'] = labels
+    if labels:
+        payload['labels'] = labels.split(', ')
     return requests.post(uri, data=json.dumps(payload), headers=HEADERS)
 
 
