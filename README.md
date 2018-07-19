@@ -24,7 +24,7 @@ This server exposes a `/new` endpoint that expects the following `multipart/form
 {
   "body": the issue body (required)
   "title": the issue title (required),
-  "labels": array of strings (optional)
+  "labels": 'one, two, three' (optional)
 }
 ```
 
