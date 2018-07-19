@@ -18,7 +18,7 @@ issues = Blueprint('issues', __name__)
 @issues.route('/')
 def index():
     """Nothing to see here."""
-    return 'Hi.', 200
+    return '200 OK', 200
 
 
 @issues.route('/new', methods=['POST'])
