@@ -13,8 +13,6 @@ import requests
 from config import REPO
 from flaskapp import app
 
-DATA_URI_PREFIX = 'data:image/jpeg;base64,'
-
 HEADERS = {
     'Authorization': 'token {0}'.format(app.config['OAUTH_TOKEN']),
     'User-Agent': 'mozilla/webcompat-blipz-experiment-server'
