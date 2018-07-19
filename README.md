@@ -1,6 +1,6 @@
 # Tracking Protection Issues
 
-TODO: add circle-ci
+[![CircleCI](https://circleci.com/gh/mozilla/tracking-protection-issues/tree/master.svg?style=shield)](https://circleci.com/gh/mozilla/tracking-protection-issues/tree/master)
 
 Repo used to host the code for filing private tracking protection issues. 
 
