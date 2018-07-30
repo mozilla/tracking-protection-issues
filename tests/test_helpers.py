@@ -34,3 +34,4 @@ class TesHelpers(unittest.TestCase):
         self.assertTrue(valid_issue_request("cool", "hi"))
         self.assertFalse(valid_issue_request("cool", ""))
         self.assertFalse(valid_issue_request("", "hi"))
+        self.assertFalse(valid_issue_request("", ""))
