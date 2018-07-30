@@ -45,12 +45,10 @@ class TestEndpoints(unittest.TestCase):
         self.assertEqual(rv.status_code, 400)
         rv = self.app.post('/new', data=json.dumps(dict(hi='dude')))
         self.assertEqual(rv.status_code, 400)
-        rv = self.app.post('/new', data=json.dumps(dict(hi='dude')))
-        self.assertEqual(rv.status_code, 400)
 
     @responses.activate
     def test_create_issue(self):
-        """Test new issue endpoint without screenshot."""
+        """Test new issue endpoint."""
         responses.add(responses.POST,
                       ISSUE_ENDPOINT,
                       json='{"number": "1"}',
