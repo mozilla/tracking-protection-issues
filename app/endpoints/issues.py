@@ -7,6 +7,7 @@ import re
 
 from flask import abort
 from flask import Blueprint
+from flask import escape
 from flask import request
 
 from app.helpers import create_issue
@@ -34,9 +35,11 @@ def new_issue():
     However, if we don't get that, we return 400
     """
 
-    body = request.form.get('body')
-    labels = request.form.get('labels')
-    title = request.form.get('title')
+    # Note: we want an empty string as a default, rather than None because
+    # otherwise the string 'None' wouldn't fail valid_issue_request
+    body = escape(request.form.get('body', ''))
+    labels = escape(request.form.get('labels', ''))
+    title = escape(request.form.get('title', ''))
 
     if valid_issue_request(body, title):
         rv = create_issue(body, title, labels)
