@@ -22,7 +22,7 @@ def create_issue(body, title, labels=None):
     uri = 'https://api.github.com/repos/{0}/issues'.format(REPO)
     payload = {"body": body, "title": title}
     if labels:
-        payload['labels'] = labels.split(', ')
+        payload['labels'] = [label.strip() for label in labels.split(',')]
     return requests.post(uri, data=json.dumps(payload), headers=HEADERS)
 
 
