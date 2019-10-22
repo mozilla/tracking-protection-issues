@@ -16,18 +16,22 @@ HEADERS = {
     'User-Agent': 'mozilla/webcompat-blipz-experiment-server'
 }
 
+
 def find_issue(title):
     """Helper method to find issues on GitHub."""
-    # We filter out older issues to avoid huge result sets and sort by created date to
-    # avoid commenting on two different issues.
-    uri = "https://api.github.com/search/issues?q='{0}'+type:issue+repo:{1}+created:>=2019-10-19&sort=created&order=desc".format(title, REPO)
+    # We filter out older issues to avoid huge result sets and sort by created
+    # date to avoid commenting on two different issues.
+    uri = "https://api.github.com/search/issues?q='{0}'+type:issue+repo:{1}+created:>=2019-10-19&sort=created&order=desc".format(title, REPO)  # noqa
     return requests.get(uri, headers=HEADERS)
+
 
 def add_labels(issue_id, labels):
     """Helper method to add labels to an existing issue on GitHub."""
-    uri = 'https://api.github.com/repos/{0}/issues/{1}/labels'.format(REPO, issue_id)
+    uri = 'https://api.github.com/repos/{0}/issues/{1}/labels'.format(REPO,
+                                                                      issue_id)
     payload = {"labels": [label.strip() for label in labels.split(',')]}
     return requests.post(uri, data=json.dumps(payload), headers=HEADERS)
+
 
 def create_issue(body, title, labels=None):
     """Helper method to create a new issue on GitHub."""
@@ -41,10 +45,10 @@ def create_issue(body, title, labels=None):
             issue_id = issue['number']
             if labels:
                 add_labels(issue_id, labels)
-            uri = 'https://api.github.com/repos/{0}/issues/{1}/comments'.format(REPO, issue_id)
+            uri = 'https://api.github.com/repos/{0}/issues/{1}/comments'.format(REPO, issue_id)  # noqa
             payload = {"body": body}
-            return requests.post(uri, data=json.dumps(payload), headers=HEADERS)
-
+            return requests.post(uri, data=json.dumps(payload),
+                                 headers=HEADERS)
     uri = 'https://api.github.com/repos/{0}/issues'.format(REPO)
     payload = {"body": body, "title": title}
     if labels:
