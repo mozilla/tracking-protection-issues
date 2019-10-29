@@ -14,7 +14,14 @@ import responses
 sys.path.append(os.path.realpath(os.pardir))
 from app import app  # noqa
 
-ISSUE_ENDPOINT = 'https://api.github.com/repos/test/test-repo/issues'
+REPO = os.environ.get('REPO', 'test/test-repo')
+ISSUE_ENDPOINT = 'https://api.github.com/repos/{0}/issues'.format(REPO)
+SEARCH_ENDPOINT = "https://api.github.com/search/issues?q='hi'+type:issue" \
+        "+repo:{0}+created:>=2019-10-19&sort=created&order=desc".format(REPO)
+COMMENTS_ENDPOINT = "https://api.github.com/repos/{0}/issues/1/comments" \
+        .format(REPO)
+LABELS_ENDPOINT = "https://api.github.com/repos/{0}/issues/1/labels" \
+        .format(REPO)
 
 
 class TestEndpoints(unittest.TestCase):
@@ -51,8 +58,57 @@ class TestEndpoints(unittest.TestCase):
         """Test new issue endpoint."""
         responses.add(responses.POST,
                       ISSUE_ENDPOINT,
-                      json='{"number": "1"}',
+                      json={"number": "1"},
                       status=201,
+                      content_type='application/json')
+
+        responses.add(responses.GET,
+                      SEARCH_ENDPOINT,
+                      json={"total_count": 0},
+                      status=200,
+                      match_querystring=True,
+                      content_type='application/json')
+
+        rv = self.app.post(
+            '/new', data=dict(title='hi', body='dude')
+        )
+        self.assertEqual(rv.status_code, 201)
+        rv = self.app.post(
+            '/new', data=dict(title='hi', body='dude', labels=['wow'])
+        )
+        self.assertEqual(rv.status_code, 201)
+
+    @responses.activate
+    def test_find_existing_issue(self):
+        """Test new issue endpoint finding existing issues."""
+        responses.add(responses.POST,
+                      ISSUE_ENDPOINT,
+                      json={"number": "1"},
+                      status=201,
+                      content_type='application/json')
+
+        responses.add(responses.POST,
+                      COMMENTS_ENDPOINT,
+                      json={},
+                      status=201,
+                      content_type='application/json')
+
+        responses.add(responses.POST,
+                      LABELS_ENDPOINT,
+                      json={},
+                      status=201,
+                      content_type='application/json')
+
+        responses.add(responses.GET,
+                      SEARCH_ENDPOINT,
+                      json={
+                          "total_count": 1,
+                          "items": [{
+                              "number": "1"
+                              }]
+                          },
+                      status=200,
+                      match_querystring=True,
                       content_type='application/json')
 
         rv = self.app.post(
