@@ -41,9 +41,21 @@ def new_issue():
     labels = escape(request.form.get('labels', ''))
     title = escape(request.form.get('title', ''))
 
-    if valid_issue_request(body, title):
-        rv = create_issue(body, title, labels)
-        if rv.status_code == 201:
-            return ('Issue created.', 201)
-        return ('Something unexpected happened, possibly.', rv.status_code)
-    return abort(400)
+    if not valid_issue_request(body, title):
+        return abort(400)
+
+    # No labels means we're not doing any blocking, so let's not report.
+    # The client should not offer a possibility to send these reports,
+    # but lets prevent processing them here as a stop-gap.
+    if not labels:
+        # The client currently can't fully handle missing labels or
+        # error responses from the server, so let's grudgingly return a
+        # 200 here, see https://bugzilla.mozilla.org/show_bug.cgi?id=1582751
+        return ('Missing labels', 200)
+
+    labels = [label.strip() for label in labels.split(',')]
+
+    rv = create_issue(body, title, labels)
+    if rv.status_code == 201:
+        return ('Issue created.', 201)
+    return ('Something unexpected happened, possibly.', rv.status_code)
