@@ -71,13 +71,22 @@ class TestEndpoints(unittest.TestCase):
                       content_type='application/json')
 
         rv = self.app.post(
-            '/new', data=dict(title='hi', body='dude')
-        )
-        self.assertEqual(rv.status_code, 201)
-        rv = self.app.post(
             '/new', data=dict(title='hi', body='dude', labels=['wow'])
         )
         self.assertEqual(rv.status_code, 201)
+
+    @responses.activate
+    def test_drop_without_labels(self):
+        """Test new issue endpoint."""
+        # Not mocking any requests, because we shouldn't make any.
+        rv = self.app.post(
+            '/new', data=dict(title='hi', body='dude')
+        )
+        self.assertEqual(rv.status_code, 200)
+        rv = self.app.post(
+            '/new', data=dict(title='hi', body='dude', labels=[])
+        )
+        self.assertEqual(rv.status_code, 200)
 
     @responses.activate
     def test_find_existing_issue(self):
@@ -112,10 +121,6 @@ class TestEndpoints(unittest.TestCase):
                       match_querystring=True,
                       content_type='application/json')
 
-        rv = self.app.post(
-            '/new', data=dict(title='hi', body='dude')
-        )
-        self.assertEqual(rv.status_code, 201)
         rv = self.app.post(
             '/new', data=dict(title='hi', body='dude', labels=['wow'])
         )

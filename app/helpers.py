@@ -29,11 +29,11 @@ def add_labels(issue_id, labels):
     """Helper method to add labels to an existing issue on GitHub."""
     uri = 'https://api.github.com/repos/{0}/issues/{1}/labels'.format(REPO,
                                                                       issue_id)
-    payload = {"labels": [label.strip() for label in labels.split(',')]}
+    payload = {"labels": labels}
     return requests.post(uri, data=json.dumps(payload), headers=HEADERS)
 
 
-def create_issue(body, title, labels=None):
+def create_issue(body, title, labels):
     """Helper method to create a new issue on GitHub."""
     # We try to find an existing issue with the same title (domain),
     # and add a comment and the additional tags if it exists.
@@ -43,16 +43,13 @@ def create_issue(body, title, labels=None):
         if data['total_count'] >= 1:
             issue = data['items'][0]
             issue_id = issue['number']
-            if labels:
-                add_labels(issue_id, labels)
+            add_labels(issue_id, labels)
             uri = 'https://api.github.com/repos/{0}/issues/{1}/comments'.format(REPO, issue_id)  # noqa
             payload = {"body": body}
             return requests.post(uri, data=json.dumps(payload),
                                  headers=HEADERS)
     uri = 'https://api.github.com/repos/{0}/issues'.format(REPO)
-    payload = {"body": body, "title": title}
-    if labels:
-        payload['labels'] = [label.strip() for label in labels.split(',')]
+    payload = {"body": body, "title": title, "labels": labels}
     return requests.post(uri, data=json.dumps(payload), headers=HEADERS)
 
 
