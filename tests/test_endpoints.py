@@ -16,8 +16,9 @@ from app import app  # noqa
 
 REPO = os.environ.get('REPO', 'test/test-repo')
 ISSUE_ENDPOINT = 'https://api.github.com/repos/{0}/issues'.format(REPO)
-SEARCH_ENDPOINT = "https://api.github.com/search/issues?q='hi'+type:issue" \
-        "+repo:{0}+created:>=2019-10-19&sort=created&order=desc".format(REPO)
+SEARCH_ENDPOINT = "https://api.github.com/search/issues?q='hi'+in:title" \
+        "+type:issue+repo:{0}+created:>=2019-10-19&sort=created&order=desc" \
+        .format(REPO)
 COMMENTS_ENDPOINT = "https://api.github.com/repos/{0}/issues/1/comments" \
         .format(REPO)
 LABELS_ENDPOINT = "https://api.github.com/repos/{0}/issues/1/labels" \

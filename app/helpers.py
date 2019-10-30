@@ -21,7 +21,7 @@ def find_issue(title):
     """Helper method to find issues on GitHub."""
     # We filter out older issues to avoid huge result sets and sort by created
     # date to avoid commenting on two different issues.
-    uri = "https://api.github.com/search/issues?q='{0}'+type:issue+repo:{1}+created:>=2019-10-19&sort=created&order=desc".format(title, REPO)  # noqa
+    uri = "https://api.github.com/search/issues?q='{0}'+in:title+type:issue+repo:{1}+created:>=2019-10-19&sort=created&order=desc".format(title, REPO)  # noqa
     return requests.get(uri, headers=HEADERS)
 
 
